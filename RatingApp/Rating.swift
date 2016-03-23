@@ -29,6 +29,7 @@ import ObjectMapper
     func iRateShouldOpenAppStore() -> Bool
 }
 
+// MARK: --- Configure To Check
 let iRateAppStoreGameGenreID = 6014
 let iRateErrorDomain = "iRateErrorDomain"
 
@@ -43,7 +44,6 @@ let iRateUseCountKey = "iRateUseCountKey"
 let iRateEventCountKey = "iRateEventCountKey"
 let iRateItunesValueKey = "iRateItunesValueKey"
 
-
 let iRateAppLookupURLFormat = "http://itunes.apple.com/%@/lookup"
 let iRateiOSAppStoreURLScheme = "itms-apps"
 let iRateiOSAppStoreURLFormat = "itms-apps://itunes.apple.com/WebObjects/MZStore.woa/wa/viewContentsUserReviews?type=Purple+Software&id=%@"
@@ -55,16 +55,16 @@ let REQUEST_TIMEOUT:Float = 60
 
 let kNoInternetCode = 8456
 
-let kFormatRatingMessageGameDefault = "If you enjoy playing ****, would you mind taking a moment to rate it? It won’t take more than a minute. Thanks for your support!"
-let kFormatRatingMessageAppDefault = "If you enjoy using ****, would you mind taking a moment to rate it? It won’t take more than a minute. Thanks for your support!"
+let kFormatRatingMessageGameDefault = "If you enjoy playing %@, would you mind taking a moment to rate it? It won’t take more than a minute. Thanks for your support!"
+let kFormatRatingMessageAppDefault = "If you enjoy using %@, would you mind taking a moment to rate it? It won’t take more than a minute. Thanks for your support!"
 
 enum iRateErrorCode:Int{
     case BundleIdDoesNotMatchAppStore = 1,
     ApplicationNotFoundOnAppStore,
     ApplicationIsNotLatestVersion,
     CouldNotOpenRatingPageURL
-    
 }
+
 
 // MARK:- Check Network
 public class Reachability {
@@ -98,7 +98,7 @@ func setValueToUserdefault(obj:AnyObject?,key:String){
 }
 
 // MARK: - Core Init
-class iRate:NSObject {
+class iRate {
     //application details - these are set automatically
     var appStoreID:Int?{
         return self.model?.trackId
@@ -110,91 +110,55 @@ class iRate:NSObject {
     var applicationBundleID:String!
     
     //usage settings - these have sensible defaults
+    // Default : -
+
     var usesUntilPrompt:Int = 10
     var eventsUntilPrompt:Int = 10
-    var daysUntilPrompt:Float = 10.0
+    var daysUntilPrompt:Float =  10.0
     var usesPerWeekForPrompt:Float = 0
     var remindPeriod:Float = 1.0
-    var error:NSError?
-    var model:ModelItunes?{
+
+    
+    private var error:NSError?
+    private var model:ModelItunes?{
         didSet{
             guard let value = self.model else{
                 return
             }
-            if let bundleID = value.bundleId {
-                if bundleID == self.applicationBundleID{
-                    if self.appStoreGenreID == 0{
-                        self.appStoreGenreID = value.primaryGenreId ?? 0
-                    }
-                    
-                    if verboseLogging && value.trackId != nil{
-                        print("iRate found the app on iTunes. The App Store ID is \(value.trackId!)")
-                    }
-                    
-                    //check version
-                    if onlyPromptIfLatestVersion && !self.previewMode {
-                        guard let version = value.version , applicationVersion = self.applicationVersion where version.compare(applicationVersion) == .OrderedDescending else{
-                            return
-                        }
-                        
-                        if verboseLogging{
-                            print("iRate found that the installed application version (\(applicationVersion)) is not the latest version on the App Store, which is \(version)")
-                        }
-                        
-                        self.error = NSError(domain: iRateErrorDomain, code: iRateErrorCode.ApplicationIsNotLatestVersion.rawValue, userInfo: [NSLocalizedDescriptionKey:"Installed app is not the latest version available"])
-                        
-                    }
-                }else{
-                    if self.verboseLogging{
-                        print("\niRate found that the application bundle ID (\(applicationBundleID)) does not match the bundle ID of the app found on iTunes (%@) with the specified App Store ID (\(bundleID))")
-                    }
-                    
-                    self.error = NSError(domain: iRateErrorDomain, code: iRateErrorCode.BundleIdDoesNotMatchAppStore.rawValue, userInfo: [NSLocalizedDescriptionKey:"Application bundle ID does not match expected value of \(bundleID)"])
-                }
-            }
-            else if self.getRatingUrl() == nil{
-                if self.verboseLogging{
-                    print("\niRate could not find this application on iTunes. If your app is not intended for App Store release then you must specify a custom ratingsURL. If this is the first release of your application then it's not a problem that it cannot be found on the store yet")
-                }
-                
-                if !self.previewMode{
-                    self.error = NSError(domain: iRateErrorDomain, code: iRateErrorCode.ApplicationNotFoundOnAppStore.rawValue, userInfo: [NSLocalizedDescriptionKey:"The application could not be found on the App Store."])
-                }
-            }else if value.trackId == nil && self.verboseLogging{
-                print("iRate could not find your app on iTunes. If your app is not yet on the store or is not intended for App Store release then don't worry about this")
-            }
-            
+            self.trackErrorFromReponseServer(value)
         }
     }
     
     //message text, you may wish to customise these
+    // MARK: --- Public Variable To Custom Message
     var messageTitle:String!
-    func getMessageTitle() -> String{
+    private func getMessageTitle() -> String{
         guard let message = messageTitle else{
             let value = applicationName ?? "AppName"
             return "Rate \(value)"
         }
         return message
     }
+    
     var message:String!
-    func getMessage() -> String{
+    private func getMessage() -> String{
         guard let message2 = self.message else{
-            let value = (appStoreGenreID == iRateAppStoreGameGenreID) ? kFormatRatingMessageGameDefault : kFormatRatingMessageAppDefault
+            let kFormat = (appStoreGenreID == iRateAppStoreGameGenreID) ? kFormatRatingMessageGameDefault : kFormatRatingMessageAppDefault
             
-            return value.stringByReplacingOccurrencesOfString("****", withString: applicationName ?? "App Name")
+            return String(format: kFormat, applicationName ?? "App Name")
         }
         
         return message2
     }
     var cancelButtonLabel:String!
-    func getCancelButtonLabel() ->String{
+    private func getCancelButtonLabel() ->String{
         guard let cancelMessage = self.cancelButtonLabel else{
             return "No, Thanks"
         }
         return cancelMessage
     }
     var remindButtonLabel:String!
-    func getReminderLabel() ->String{
+    private func getReminderLabel() ->String{
         guard let reminderMessage = self.remindButtonLabel else{
             return "Remind Me Later"
         }
@@ -202,7 +166,7 @@ class iRate:NSObject {
         return reminderMessage
     }
     var rateButtonLabel:String!
-    func getRateButtonLabel() ->String{
+    private func getRateButtonLabel() ->String{
         guard let rateMessage = self.rateButtonLabel else{
             return "Rate It Now"
         }
@@ -222,18 +186,7 @@ class iRate:NSObject {
     //advanced properties for implementing custom behaviour
     var ratingsURL:NSURL?
     
-    func getRatingUrl()->NSURL?{
-        if self.ratingsURL == nil{
-            guard let appId = self.appStoreID else{
-                return nil
-            }
-            return NSURL(string: String(format: iRateiOS7AppStoreURLFormat, "\(appId)"))
-        }
-        
-        return self.ratingsURL
-    }
-    
-    var firstUsed:NSDate?{
+    private var firstUsed:NSDate?{
         set(newValue){
             setValueToUserdefault(newValue, key: iRateFirstUsedKey)
         }
@@ -243,7 +196,7 @@ class iRate:NSObject {
         }
     }
     
-    var lastReminded:NSDate?{
+    private var lastReminded:NSDate?{
         set(newValue){
             setValueToUserdefault(newValue, key: iRateLastRemindedKey)
         }
@@ -253,7 +206,7 @@ class iRate:NSObject {
         }
     }
     
-    var usesCount:Int{
+    private var usesCount:Int{
         set(newValue){
             setValueToUserdefault(newValue, key: iRateUseCountKey)
         }
@@ -266,7 +219,7 @@ class iRate:NSObject {
         }
     }
     
-    var eventCount:Int{
+    private var eventCount:Int{
         set(newValue){
             setValueToUserdefault(newValue, key: iRateEventCountKey)
         }
@@ -280,7 +233,7 @@ class iRate:NSObject {
     }
 
     var usesPerWeek:Float = 0
-    func getUsesPerWeek() -> Float{
+    private func getUsesPerWeek() -> Float{
         guard let firstUsed = self.firstUsed else{
             return 0
         }
@@ -329,11 +282,12 @@ class iRate:NSObject {
         return true
     }
     
-    var checkingForPrompt:Bool = false
-    var checkingForAppStoreID:Bool = false
+    private var checkingForPrompt:Bool = false
+    private var checkingForAppStoreID:Bool = false
     
-    var delegate:iRateDelegate?
+    weak var delegate:iRateDelegate?
     
+// MARK: - Shared Instance
     struct Static {
         static let sharedInstance = iRate()
     }
@@ -341,9 +295,10 @@ class iRate:NSObject {
     class func sharedInstance() -> iRate{
         return Static.sharedInstance
     }
+    
 // MARK: - Init
-    override init(){
-        super.init()
+    init()
+    {
         self.appStoreCountry = NSLocale.currentLocale().objectForKey(NSLocaleCountryCode) as? String
         self.applicationVersion = NSBundle.mainBundle().objectForInfoDictionaryKey("CFBundleShortVersionString") as? String
         
@@ -371,16 +326,8 @@ class iRate:NSObject {
     
 }
 
-
-// MARK: - Helper
+// MARK: - Public Function
 extension iRate{
-    func incrementUseCount(){
-        self.usesCount += 1
-    }
-    func incrementEventCount(){
-        self.eventCount += 1
-    }
-    
     func applicationLaunched(){
         
         defer{
@@ -392,7 +339,7 @@ extension iRate{
         }
         let value = getValueFromUserDefault(iRateLastVersionUsedKey) as? String
         
-        if value == nil || value! != applicationVersion{
+        if value == nil || value != applicationVersion{
             setValueToUserdefault(applicationVersion, key: iRateLastVersionUsedKey)
             setValueToUserdefault(NSDate(), key: iRateFirstUsedKey)
             setValueToUserdefault(0, key: iRateUseCountKey)
@@ -400,6 +347,26 @@ extension iRate{
             setValueToUserdefault(nil, key: iRateLastRemindedKey)
             delegate?.iRateDidDetectAppUpdate?()
         }
+    }
+}
+// MARK: - Helper
+private extension iRate{
+    func getRatingUrl() -> NSURL?{
+        if self.ratingsURL == nil{
+            guard let appId = self.appStoreID else{
+                return nil
+            }
+            return NSURL(string: String(format: iRateiOS7AppStoreURLFormat, "\(appId)"))
+        }
+        
+        return self.ratingsURL
+    }
+    
+    func incrementUseCount(){
+        self.usesCount += 1
+    }
+    func incrementEventCount(){
+        self.eventCount += 1
     }
     
     func checkForConnectivityInBackground(){
@@ -517,7 +484,7 @@ extension iRate{
 }
 
 // MARK: - Manually control behaviour
-extension iRate{
+private extension iRate{
     func shouldPromptForRating() -> Bool{
         //preview mode?
         let value1 = self.previewMode
@@ -668,6 +635,67 @@ extension iRate{
     }
     
 }
+
+// MARK: --- Tracking Error From Model
+private extension iRate{
+    
+    func trackErrorFromReponseServer(value:ModelItunes)
+    {
+        guard let bundleID = value.bundleId else{
+            if self.getRatingUrl() == nil {
+                if self.verboseLogging{
+                    print("\niRate could not find this application on iTunes. If your app is not intended for App Store release then you must specify a custom ratingsURL. If this is the first release of your application then it's not a problem that it cannot be found on the store yet")
+                }
+                
+                if !self.previewMode{
+                    self.error = NSError(domain: iRateErrorDomain, code: iRateErrorCode.ApplicationNotFoundOnAppStore.rawValue, userInfo: [NSLocalizedDescriptionKey:"The application could not be found on the App Store."])
+                }
+                return
+            }
+            
+            if value.trackId == nil && self.verboseLogging{
+                print("iRate could not find your app on iTunes. If your app is not yet on the store or is not intended for App Store release then don't worry about this")
+            }
+            
+            return
+        }
+        
+        guard bundleID == self.applicationBundleID else{
+            if self.verboseLogging{
+                print("\niRate found that the application bundle ID (\(applicationBundleID)) does not match the bundle ID of the app found on iTunes (%@) with the specified App Store ID (\(bundleID))")
+            }
+            
+            self.error = NSError(domain: iRateErrorDomain, code: iRateErrorCode.BundleIdDoesNotMatchAppStore.rawValue, userInfo: [NSLocalizedDescriptionKey:"Application bundle ID does not match expected value of \(bundleID)"])
+            
+            return
+        }
+        
+        if self.appStoreGenreID == 0{
+            self.appStoreGenreID = value.primaryGenreId ?? 0
+        }
+        
+        if verboseLogging && value.trackId != nil{
+            print("iRate found the app on iTunes. The App Store ID is \(value.trackId!)")
+        }
+        
+        if onlyPromptIfLatestVersion && !self.previewMode
+        {
+            guard let version = value.version , applicationVersion = self.applicationVersion where version.compare(applicationVersion) == .OrderedDescending else{
+                return
+            }
+            
+            if verboseLogging{
+                print("iRate found that the installed application version (\(applicationVersion)) is not the latest version on the App Store, which is \(version)")
+            }
+            
+            self.error = NSError(domain: iRateErrorDomain, code: iRateErrorCode.ApplicationIsNotLatestVersion.rawValue, userInfo: [NSLocalizedDescriptionKey:"Installed app is not the latest version available"])
+            
+        }
+    }
+}
+
+
+// MARK: --- Handle Action From User
 enum iRateAction:Int{
     case Cancel = 0,
     Reminder,
@@ -675,7 +703,7 @@ enum iRateAction:Int{
 }
 
 
-extension iRate{
+private extension iRate{
     func handleAction(type:iRateAction){
         switch type{
         case .Cancel:

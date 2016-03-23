@@ -52,11 +52,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "RatingApp/Rating.swift"
-            timestampString = "480400681.82935"
+            timestampString = "480409270.293234"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "526"
-            endingLineNumber = "526"
+            startingLineNumber = "490"
+            endingLineNumber = "490"
             landmarkName = "shouldPromptForRating()"
             landmarkType = "5">
          </BreakpointContent>
@@ -68,11 +68,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "RatingApp/Rating.swift"
-            timestampString = "480400681.82935"
+            timestampString = "480409270.293234"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "630"
-            endingLineNumber = "630"
+            startingLineNumber = "594"
+            endingLineNumber = "594"
             landmarkName = "promptIfNetworkAvailable()"
             landmarkType = "5">
          </BreakpointContent>
@@ -84,11 +84,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "RatingApp/Rating.swift"
-            timestampString = "480400681.82935"
+            timestampString = "480409270.293234"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "693"
-            endingLineNumber = "693"
+            startingLineNumber = "718"
+            endingLineNumber = "718"
             landmarkName = "handleAction(_:)"
             landmarkType = "5">
          </BreakpointContent>
@@ -100,11 +100,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "RatingApp/Rating.swift"
-            timestampString = "480400681.82935"
+            timestampString = "480409270.293234"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "637"
-            endingLineNumber = "637"
+            startingLineNumber = "601"
+            endingLineNumber = "601"
             landmarkName = "openRatingsPageInAppStore()"
             landmarkType = "5">
          </BreakpointContent>
@@ -116,11 +116,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "RatingApp/Rating.swift"
-            timestampString = "480400681.82935"
+            timestampString = "480409270.293234"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "646"
-            endingLineNumber = "646"
+            startingLineNumber = "610"
+            endingLineNumber = "610"
             landmarkName = "openRatingsPageInAppStore()"
             landmarkType = "5">
          </BreakpointContent>
@@ -148,27 +148,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "RatingApp/Rating.swift"
-            timestampString = "480400681.82935"
+            timestampString = "480409270.293234"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "363"
-            endingLineNumber = "363"
-            landmarkName = "init()"
-            landmarkType = "5">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "RatingApp/Rating.swift"
-            timestampString = "480400681.82935"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "440"
-            endingLineNumber = "440"
+            startingLineNumber = "404"
+            endingLineNumber = "404"
             landmarkName = "checkForConnectivityInBackground()"
             landmarkType = "5">
          </BreakpointContent>
@@ -180,11 +164,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "RatingApp/Rating.swift"
-            timestampString = "480400681.82935"
+            timestampString = "480409270.293234"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "432"
-            endingLineNumber = "432"
+            startingLineNumber = "396"
+            endingLineNumber = "396"
             landmarkName = "checkForConnectivityInBackground()"
             landmarkType = "5">
          </BreakpointContent>
