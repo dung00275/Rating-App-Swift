@@ -26,11 +26,12 @@ class ViewController: UIViewController {
 
 extension ViewController:iRateDelegate{
     func requestAppstore(){
-        iRate.sharedInstance().applicationBundleID = "com.charcoaldesign.rainbowblocks-free"
-        iRate.sharedInstance().onlyPromptIfLatestVersion = false
-        iRate.sharedInstance().previewMode = true
-        iRate.sharedInstance().delegate = self
-        iRate.sharedInstance().applicationLaunched()
+        iRate.sharedInstance.applicationBundleID = "com.charcoaldesign.rainbowblocks-free"
+        iRate.sharedInstance.onlyPromptIfLatestVersion = false
+        iRate.sharedInstance.previewMode = true
+        iRate.sharedInstance.delegate = self
+        iRate.sharedInstance.applicationLaunched()
+        iRate.sharedInstance.messageTitle = "Test"
     
     }
     

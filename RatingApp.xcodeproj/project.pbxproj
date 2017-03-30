@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		A1C472492F2B3D59AE08B1BC /* Pods_RatingApp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7386901BB2C206FEBC5CFF71 /* Pods_RatingApp.framework */; };
+		B66F9BBA1E8CF947001A0F0F /* Helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = B66F9BB91E8CF947001A0F0F /* Helper.swift */; };
 		E9E133F51BD4B0870040C580 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9E133F41BD4B0870040C580 /* AppDelegate.swift */; };
 		E9E133F71BD4B0870040C580 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9E133F61BD4B0870040C580 /* ViewController.swift */; };
 		E9E133FA1BD4B0870040C580 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = E9E133F81BD4B0870040C580 /* Main.storyboard */; };
@@ -23,6 +24,7 @@
 		7386901BB2C206FEBC5CFF71 /* Pods_RatingApp.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_RatingApp.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		9C738A99695FE64CD1F5635B /* Pods-RatingAppTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RatingAppTests.debug.xcconfig"; path = "Pods/Target Support Files/Pods-RatingAppTests/Pods-RatingAppTests.debug.xcconfig"; sourceTree = "<group>"; };
 		A9713EDE100F4C9B5D928C2B /* Pods-RatingApp.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RatingApp.debug.xcconfig"; path = "Pods/Target Support Files/Pods-RatingApp/Pods-RatingApp.debug.xcconfig"; sourceTree = "<group>"; };
+		B66F9BB91E8CF947001A0F0F /* Helper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Helper.swift; sourceTree = "<group>"; };
 		BC6B228791D8950A29E5D203 /* Pods-RatingAppUITests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RatingAppUITests.debug.xcconfig"; path = "Pods/Target Support Files/Pods-RatingAppUITests/Pods-RatingAppUITests.debug.xcconfig"; sourceTree = "<group>"; };
 		E9E133F11BD4B0870040C580 /* RatingApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = RatingApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E9E133F41BD4B0870040C580 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -108,6 +110,7 @@
 				E9E133FB1BD4B0870040C580 /* Assets.xcassets */,
 				E9E133FD1BD4B0870040C580 /* LaunchScreen.storyboard */,
 				E9E134001BD4B0870040C580 /* Info.plist */,
+				B66F9BB91E8CF947001A0F0F /* Helper.swift */,
 			);
 			path = RatingApp;
 			sourceTree = "<group>";
@@ -263,6 +266,7 @@
 			files = (
 				E9E134441BD4B1BB0040C580 /* Rating.swift in Sources */,
 				E9E134671BD4D8F40040C580 /* Model.swift in Sources */,
+				B66F9BBA1E8CF947001A0F0F /* Helper.swift in Sources */,
 				E9E133F71BD4B0870040C580 /* ViewController.swift in Sources */,
 				E9E133F51BD4B0870040C580 /* AppDelegate.swift in Sources */,
 			);

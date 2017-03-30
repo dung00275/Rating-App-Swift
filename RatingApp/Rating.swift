@@ -12,6 +12,8 @@ import SystemConfiguration
 import UIKit
 import Alamofire
 import ObjectMapper
+import RxAlamofire
+import RxSwift
 
 // MARK: - Delegate
 @objc protocol iRateDelegate:NSObjectProtocol{
@@ -123,7 +125,16 @@ class iRate {
     var remindPeriod:Float = 1.0
 
     
-    fileprivate var error:NSError?
+    fileprivate var error:NSError? {
+        didSet{
+            self.checking = false
+            if let error3 = self.error, !(error3.code == Int(EPERM) && error3.domain == NSPOSIXErrorDomain && self.appStoreID != nil){
+                self.connectionError(error3)
+            }else{
+                self.connectionSucceeded()
+            }
+        }
+    }
     fileprivate var model:ModelItunes?{
         didSet{
             guard let value = self.model else{
@@ -135,48 +146,46 @@ class iRate {
     
     //message text, you may wish to customise these
     // MARK: --- Public Variable To Custom Message
-    var messageTitle:String!
-    fileprivate func getMessageTitle() -> String{
-        guard let message = messageTitle else{
-            let value = applicationName ?? "AppName"
-            return "Rate \(value)"
+    private var _mT: String!
+    var messageTitle:String! {
+        set{ _mT = newValue }
+        get{
+            return _mT ?? "Rate \(applicationName ?? "AppName")"
         }
-        return message
+    }
+    private var _m: String!
+    var message:String!{
+        set{ _m = newValue }
+        get{
+            guard let m = _m else {
+                let kFormat = (appStoreGenreID == iRateAppStoreGameGenreID) ? kFormatRatingMessageGameDefault : kFormatRatingMessageAppDefault
+                return String(format: kFormat, applicationName ?? "App Name")
+            }
+            return m
+        }
+    }
+    private var _cancelM: String!
+    var cancelButtonLabel:String!{
+        set{ _cancelM = newValue }
+        get {
+            return _cancelM ?? "No, Thanks"
+        }
+    }
+    private var _reminderM: String!
+    var remindButtonLabel: String! {
+        set { _reminderM = newValue }
+        get {
+           return _reminderM ?? "Remind Me Later"
+        }
+    }
+    private var _rateM: String!
+    var rateButtonLabel: String!{
+        set{ _rateM = newValue }
+        get{
+           return _rateM ?? "Rate It Now"
+        }
     }
     
-    var message:String!
-    fileprivate func getMessage() -> String{
-        guard let message2 = self.message else{
-            let kFormat = (appStoreGenreID == iRateAppStoreGameGenreID) ? kFormatRatingMessageGameDefault : kFormatRatingMessageAppDefault
-            
-            return String(format: kFormat, applicationName ?? "App Name")
-        }
-        
-        return message2
-    }
-    var cancelButtonLabel:String!
-    fileprivate func getCancelButtonLabel() ->String{
-        guard let cancelMessage = self.cancelButtonLabel else{
-            return "No, Thanks"
-        }
-        return cancelMessage
-    }
-    var remindButtonLabel:String!
-    fileprivate func getReminderLabel() ->String{
-        guard let reminderMessage = self.remindButtonLabel else{
-            return "Remind Me Later"
-        }
-        
-        return reminderMessage
-    }
-    var rateButtonLabel:String!
-    fileprivate func getRateButtonLabel() ->String{
-        guard let rateMessage = self.rateButtonLabel else{
-            return "Rate It Now"
-        }
-        return rateMessage
-        
-    }
     
     //debugging and prompt overrides
     var onlyPromptIfLatestVersion:Bool = true
@@ -185,7 +194,7 @@ class iRate {
     var verboseLogging:Bool = true
     var previewMode:Bool = false
     var checking:Bool = false
-    
+    fileprivate var disposeBag:DisposeBag! = DisposeBag()
     
     //advanced properties for implementing custom behaviour
     var ratingsURL:URL?
@@ -295,28 +304,16 @@ class iRate {
     struct Static {
         static let sharedInstance = iRate()
     }
-    
-    class func sharedInstance() -> iRate{
-        return Static.sharedInstance
-    }
+    static let sharedInstance = Static.sharedInstance
     
 // MARK: - Init
     init()
     {
-        self.appStoreCountry = (Locale.current as NSLocale).object(forKey: NSLocale.Key.countryCode) as? String
-        self.applicationVersion = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String
-        
-        if applicationVersion == nil || applicationVersion!.characters.count == 0{
-            self.applicationVersion = Bundle.main.object(forInfoDictionaryKey: String(kCFBundleVersionKey)) as? String
-        }
-        
-        self.applicationName = Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String
-        
-        if applicationName == nil || applicationName!.characters.count == 0{
-            self.applicationName =  Bundle.main.object(forInfoDictionaryKey: String(kCFBundleNameKey)) as? String
-        }
-        
+        self.appStoreCountry = Locale.current.regionCode
+        self.applicationVersion = Bundle.main.version
+        self.applicationName = Bundle.main.name
         self.applicationBundleID = Bundle.main.bundleIdentifier
+        
         #if DEBUG
             self.verboseLogging = true
         #else
@@ -388,35 +385,19 @@ private extension iRate{
         if verboseLogging{
             print("\niRate is checking \(iTunesServiceURL) to retrieve the App Store details...")
         }
-        
-        
-        let request:DataRequest = SessionManager.default.request(iTunesServiceURL, method: .get)
-        
-        request.responseJSON(queue: DispatchQueue.global(qos: .background) , options: .allowFragments) { [weak self](r) in
-            defer{
-                self?.checking = false
-                if let error3 = self?.error, !(error3.code == Int(EPERM) && error3.domain == NSPOSIXErrorDomain && self?.appStoreID != nil){
-                    self?.connectionError(error3)
-                }else{
-                    self?.connectionSucceeded()
-                }
-            }
-            
-            switch r.result {
-            case .success(let v):
-                guard let json = v as? [String: Any], let values = json["results"] as? [AnyObject], values.count > 0  else{
-                    self?.error = NSError(domain: iRateErrorDomain, code: 4786, userInfo: [NSLocalizedDescriptionKey:"Not have values"])
-                    return
-                }
-                setValueToUserdefault(values, key: iRateItunesValueKey)
-                self?.model = Mapper<ModelItunes>().map(JSONObject: values.last)
-            case .failure(let e):
-                let statusCode = r.response?.statusCode ?? 0
-                self?.error = NSError(domain: "HTTPResponseErrorDomain", code: statusCode, userInfo: [NSLocalizedDescriptionKey: e.localizedDescription])
-                
-            }
-        }
 
+        SessionManager.default.rx.requestObject(with: ModelItunes.self, .get, iTunesServiceURL, transform: { r in
+            guard let json = r.1 as? [String: Any], let values = json["results"] as? [Any], values.count > 0  else{
+                throw NSError(domain: iRateErrorDomain, code: 4786, userInfo: [NSLocalizedDescriptionKey:"Not have values"])
+            }
+            return values.last
+        }).subscribe(onNext: { [weak self] in
+            self?.model = $0
+            self?.error = nil
+            }, onError: { [weak self](e) in
+                self?.error = e as NSError
+        }).addDisposableTo(disposeBag)
+        
     }
     
     func connectionError(_ error:NSError?){
@@ -546,19 +527,19 @@ private extension iRate{
     }
     
     func promptForRating(){
-        let alert = UIAlertController(title: self.getMessageTitle(), message: self.getMessage(), preferredStyle: UIAlertControllerStyle.alert)
-        let actionRating = UIAlertAction(title: self.getRateButtonLabel(), style: .default) { [weak self](action) -> Void in
+        let alert = UIAlertController(title: self.messageTitle, message: self.message, preferredStyle: UIAlertControllerStyle.alert)
+        let actionRating = UIAlertAction(title: self.rateButtonLabel, style: .default) { [weak self](action) -> Void in
             alert.dismiss(animated: true, completion: nil)
             self?.handleAction(iRateAction.rating)
         }
         
-        let actionReminder = UIAlertAction(title: self.getReminderLabel(), style: .default) { [weak self](action) -> Void in
+        let actionReminder = UIAlertAction(title: self.remindButtonLabel, style: .default) { [weak self](action) -> Void in
             alert.dismiss(animated: true, completion: nil)
             self?.handleAction(iRateAction.reminder)
         }
         
         
-        let actionCancel = UIAlertAction(title: self.getCancelButtonLabel(), style: .cancel) { [weak self](action) -> Void in
+        let actionCancel = UIAlertAction(title: self.cancelButtonLabel, style: .cancel) { [weak self](action) -> Void in
             alert.dismiss(animated: true, completion: nil)
             self?.handleAction(iRateAction.cancel)
         }
