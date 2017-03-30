@@ -4,8 +4,11 @@ platform :ios, '8.0'
 use_frameworks!
 
 target 'RatingApp' do
-pod 'Alamofire', '~> 3.0'
-pod 'ObjectMapper', '~> 1.1'
+pod 'Alamofire'
+pod 'ObjectMapper'
+pod 'RxSwift'
+pod 'RxCocoa'
+pod 'RxAlamofire'
 end
 
 target 'RatingAppTests' do

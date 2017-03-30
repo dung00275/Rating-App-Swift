@@ -7,7 +7,7 @@
 //
 
 import UIKit
-
+import Alamofire
 class ViewController: UIViewController {
 
     override func viewDidLoad() {
@@ -31,6 +31,7 @@ extension ViewController:iRateDelegate{
         iRate.sharedInstance().previewMode = true
         iRate.sharedInstance().delegate = self
         iRate.sharedInstance().applicationLaunched()
+    
     }
     
     func iRateShouldPromptForRating() -> Bool {
@@ -45,8 +46,8 @@ extension ViewController:iRateDelegate{
         print("\nUser Decline App!!!")
     }
     
-    func iRateCouldNotConnectToAppStore(error: NSError?) {
-        print("\nError Open Appstore : \(error?.localizedDescription)")
+    func iRateCouldNotConnectToAppStore(_ error: NSError?) {
+        print("\nError Open Appstore : \(error?.localizedDescription ?? "")")
     }
     
     func iRateDidPromptForRating() {
